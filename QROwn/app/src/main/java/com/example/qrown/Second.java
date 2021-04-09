@@ -8,6 +8,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
+import java.io.*;
+import java.net.*;
 
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
@@ -52,6 +54,7 @@ public class Second extends Activity implements View.OnClickListener{
             if(result.getContents() != null){
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setMessage(result.getContents());
+
                 builder.setTitle("Результат сканирования");
                 builder.setPositiveButton("Повторите попытку", new DialogInterface.OnClickListener() {
                     @Override
