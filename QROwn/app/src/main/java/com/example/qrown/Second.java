@@ -14,37 +14,33 @@ import android.widget.EditText;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-
+import java.io.OutputStreamWriter;
+import java.util.Optional;
 
 public class Second extends Activity implements View.OnClickListener{
 
     Button scanBtn;
-    public static String doGet(String url)
+    public static String doGet(String contentType, String requestBody)
             throws Exception {
 
-        URL obj = new URL(url);
+        URL obj = new URL("httpbin.org/post");
         HttpURLConnection connection = (HttpURLConnection) obj.openConnection();
 
         //add reuqest header
+        connection.setRequestProperty("Content-Type", contentType);
+        connection.setConnectTimeout(10000);
         connection.setRequestMethod("POST");
-        connection.setRequestProperty("User-Agent", "Mozilla/5.0" );
-        connection.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
-        connection.setRequestProperty("Content-Type", "application/json");
 
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-        String inputLine;
-        StringBuffer response = new StringBuffer();
-
-        while ((inputLine = bufferedReader.readLine()) != null) {
-            response.append(inputLine);
+        try(OutputStreamWriter writer = new OutputStreamWriter(connection.getOutputStream())) {
+            writer.write(requestBody);
         }
-        bufferedReader.close();
 
-        return response.toString();
+        if (connection.getResponseCode() != 200) {
+            System.err.println("connection failed");
+            return Optional.empty();
+        }
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
