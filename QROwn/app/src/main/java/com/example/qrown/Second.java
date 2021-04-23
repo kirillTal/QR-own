@@ -14,32 +14,50 @@ import android.widget.EditText;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.io.OutputStreamWriter;
 import java.util.Optional;
 
+import javax.net.ssl.HttpsURLConnection;
+
 public class Second extends Activity implements View.OnClickListener{
 
     Button scanBtn;
-    public static String doGet(String contentType, String requestBody)
-            throws Exception {
-
-        URL obj = new URL("httpbin.org/post");
-        HttpURLConnection connection = (HttpURLConnection) obj.openConnection();
-
-        //add reuqest header
-        connection.setRequestProperty("Content-Type", contentType);
-        connection.setConnectTimeout(10000);
-        connection.setRequestMethod("POST");
-
-        try(OutputStreamWriter writer = new OutputStreamWriter(connection.getOutputStream())) {
-            writer.write(requestBody);
+    private String getContent(String path) throws IOException {
+        BufferedReader reader=null;
+        InputStream stream = null;
+        HttpsURLConnection connection = null;
+        try {
+            URL url=new URL(path);
+            connection =(HttpsURLConnection)url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setReadTimeout(10000);
+            //connection.addRequestProperty("kek", "lol");
+            connection.connect();
+            stream = connection.getInputStream();
+            reader= new BufferedReader(new InputStreamReader(stream));
+            StringBuilder buf=new StringBuilder();
+            String line;
+            while ((line=reader.readLine()) != null) {
+                buf.append(line).append("\n");
+            }
+            return(buf.toString());
         }
-
-        if (connection.getResponseCode() != 200) {
-            System.err.println("connection failed");
-            return Optional.empty();
+        finally {
+            if (reader != null) {
+                reader.close();
+            }
+            if (stream != null) {
+                stream.close();
+            }
+            if (connection != null) {
+                connection.disconnect();
+            }
         }
     }
     @Override
@@ -88,7 +106,11 @@ public class Second extends Activity implements View.OnClickListener{
                 }).setNegativeButton("Сканирование завершено", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-
+                        try {
+                            getContent("https://httpbin.org/delay/1");
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                         finish();
                     }
                 });
